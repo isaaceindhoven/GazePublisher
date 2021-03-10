@@ -1,0 +1,1 @@
+alias serve="php -S localhost:8001";

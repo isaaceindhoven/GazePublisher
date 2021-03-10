@@ -1,0 +1,12 @@
+{
+    "name": "bader.ali/gazephp",
+    "authors": [
+        {
+            "name": "Bader Ali",
+            "email": "bader.ali@isaac.nl"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^5.2"
+    }
+}
