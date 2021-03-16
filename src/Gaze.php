@@ -22,13 +22,15 @@ function getID()
 class Gaze
 {
     private $privateKey;
+    private $hubUrl;
 
-    function __construct()
+    function __construct(string $hubUrl)
     {
+        $this->hubUrl = $hubUrl;
         $this->privateKey = file_get_contents(__DIR__ . '/private.key');
     }
 
-    public function emit(string $name, array $payload, array $roles = []): void
+    public function emit(string $name, array $payload, string $role = null): void
     {
         $MINUTES_VALID = 5;
 
@@ -38,12 +40,12 @@ class Gaze
         ], $this->privateKey, 'RS256');
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'http://localhost:8000/event');
+        curl_setopt($ch, CURLOPT_URL, $this->hubUrl . '/event');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
             'payload' => $payload,
             'topic' => $name,
-            'roles' => $roles,
+            'role' => $role,
         ]));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type:application/json',
