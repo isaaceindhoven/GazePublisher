@@ -8,6 +8,7 @@ use Firebase\JWT\JWT;
 use GazePHP\Exceptions\GazeEmitException;
 use GazePHP\Exceptions\GazeHubUrlInvalidException;
 use GazePHP\Exceptions\PrivateKeyNotValidException;
+use JsonSerializable;
 use Ramsey\Uuid\Uuid;
 
 use function curl_close;
@@ -68,7 +69,10 @@ class Gaze
         $this->ignoreErrors = $ignoreErrors;
     }
 
-    public function emit(string $name, array $payload, string $role = null): void
+    /**
+     * @param array|JsonSerializable $payload
+     */
+    public function emit(string $name, $payload, string $role = null): void
     {
         $httpCode = $this->sendEvent($name, $payload, $role);
         $tries = 1;
@@ -82,7 +86,10 @@ class Gaze
         }
     }
 
-    private function sendEvent(string $name, array $payload, string $role = null): int
+    /**
+     * @param array|JsonSerializable $payload
+     */
+    private function sendEvent(string $name, $payload, string $role = null): int
     {
         $jwt = JWT::encode([
             'role' => 'server',
@@ -102,9 +109,10 @@ class Gaze
     }
 
     /**
+     * @param array|JsonSerializable $payload
      * @return resource
      */
-    private function getCurl(string $url, array $payload, array $headers)
+    private function getCurl(string $url, $payload, array $headers)
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
