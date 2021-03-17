@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace GazePHP;
 
 use Firebase\JWT\JWT;
+use GazePHP\Exceptions\GazeEmitException;
+use GazePHP\Exceptions\GazeHubUrlInvalidException;
+use GazePHP\Exceptions\PrivateKeyNotValidException;
 use Ramsey\Uuid\Uuid;
 
 use function curl_close;
@@ -12,7 +15,12 @@ use function curl_exec;
 use function curl_getinfo;
 use function curl_init;
 use function curl_setopt;
+use function file_exists;
+use function file_get_contents;
+use function filter_var;
 use function json_encode;
+use function strpos;
+use function substr;
 use function time;
 
 use const CURLINFO_HTTP_CODE;
@@ -21,6 +29,7 @@ use const CURLOPT_POST;
 use const CURLOPT_POSTFIELDS;
 use const CURLOPT_RETURNTRANSFER;
 use const CURLOPT_URL;
+use const FILTER_VALIDATE_URL;
 
 class Gaze
 {
@@ -44,14 +53,17 @@ class Gaze
      */
     private $ignoreErrors;
 
+    /**
+     * @param string $privateKey Can be passed as the **key path** location or **file contents**.
+     */
     public function __construct(
         string $hubUrl,
-        string $privateKeyContent,
+        string $privateKey,
         int $maxTries = 3,
         bool $ignoreErrors = false
     ) {
-        $this->hubUrl = $hubUrl;
-        $this->privateKeyContent = $privateKeyContent;
+        $this->setHubUrl($hubUrl);
+        $this->setPrivateKey($privateKey);
         $this->maxTries = $maxTries;
         $this->ignoreErrors = $ignoreErrors;
     }
@@ -117,5 +129,29 @@ class Gaze
     private function timestampAfterMinutes(int $minutes = 0): int
     {
         return time() + 60 * $minutes;
+    }
+
+    private function setHubUrl(string $hubUrl)
+    {
+        if (filter_var($hubUrl, FILTER_VALIDATE_URL) === false) {
+            throw new GazeHubUrlInvalidException();
+        }
+        if ($hubUrl[-1] === '/') {
+            $hubUrl = substr($hubUrl, 0, -1);
+        }
+        $this->hubUrl = $hubUrl;
+    }
+
+    private function setPrivateKey(string $privateKey)
+    {
+        if (strpos($privateKey, '-----BEGIN RSA PRIVATE KEY-----') !== 0) {
+            if (file_exists($privateKey)) {
+                $privateKey = file_get_contents($privateKey);
+            } else {
+                throw new PrivateKeyNotValidException();
+            }
+        }
+
+        $this->privateKeyContent = $privateKey;
     }
 }
