@@ -11,6 +11,7 @@
             "email": "daan.vanberkel@isaac.nl"
         }
     ],
+    "license": "proprietary",
     "autoload": {
         "psr-4": {
             "GazePHP\\": "src/"
@@ -19,7 +20,8 @@
     "require": {
         "firebase/php-jwt": "^5.2",
         "ramsey/uuid": "^4.1",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "ext-json": "*"
     },
     "require-dev": {
         "isaac/php-code-sniffer-standard": "^21.0"
