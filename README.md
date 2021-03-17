@@ -33,7 +33,7 @@ To create this pair run the following command in your terminal:
     // add to service container
 ```
 
-## 🧑🏻‍💻 Usage
+## ⚡️ Usage
 
 ```php
     $gaze = new Gaze(
