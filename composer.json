@@ -6,7 +6,16 @@
             "email": "bader.ali@isaac.nl"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "GazePHP\\": "src/"
+        }
+    },
     "require": {
-        "firebase/php-jwt": "^5.2"
+        "firebase/php-jwt": "^5.2",
+        "ramsey/uuid": "^4.1"
+    },
+    "require-dev": {
+        "isaac/php-code-sniffer-standard": "^21.0"
     }
 }
