@@ -1,9 +1,14 @@
 {
-    "name": "bader.ali/gazephp",
+    "name": "isaac/gazephp",
+    "description": "Client library for GazeHub",
     "authors": [
         {
             "name": "Bader Ali",
             "email": "bader.ali@isaac.nl"
+        },
+        {
+            "name": "Daan van Berkel",
+            "email": "daan.vanberkel@isaac.nl"
         }
     ],
     "autoload": {
@@ -13,7 +18,8 @@
     },
     "require": {
         "firebase/php-jwt": "^5.2",
-        "ramsey/uuid": "^4.1"
+        "ramsey/uuid": "^4.1",
+        "ext-curl": "*"
     },
     "require-dev": {
         "isaac/php-code-sniffer-standard": "^21.0"
