@@ -43,6 +43,7 @@ $gaze = new Gaze(
     false                       // $ignoreErrors -> If set to true it will not throw errors if emit fails
 );
 
+
 /**
  * Example: 1
  * This will emit an new event to the hub with the name "ProductUpdated/1"
