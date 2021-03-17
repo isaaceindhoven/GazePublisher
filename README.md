@@ -4,8 +4,26 @@
 
 ## ⚙️ Installation
 
-```bash
-composer install X
+### 1 - Add Gitlab repo link to your composer.json
+```js
+"repositories": [
+    {
+        "type": "vcs",
+        "url": "ssh://git@gitlab.isaac.local/study/php-chapter/real-time-ui-updates/gazephp.git"
+    }
+]
+
+"require": {
+    ...
+    "isaac/gazephp" : "dev-master",
+    ...
+}
+
+```
+
+### 2 Install the composer package
+```shell
+composer update isaac/gazephp
 ```
 
 ### Creating a Public and Private keypair
