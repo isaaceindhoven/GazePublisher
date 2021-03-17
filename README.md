@@ -5,7 +5,7 @@
 ## ⚙️ Installation
 
 ```bash
-composer install @study/gazephp
+composer install X
 ```
 
 ### Creating a Public and Private keypair
@@ -24,39 +24,39 @@ To create this pair run the following command in your terminal:
 ### Symfony
 
 ```php
-    // add to service container
+// TODO
 ```
 
 ### Laravel
 
 ```php
-    // add to service container
+// TODO
 ```
 
 ## ⚡️ Usage
 
 ```php
-    $gaze = new Gaze(
-        "http://localhost:3333",    // $hubUrl -> Url to the hub
-        __DIR__ . "/private.key",   // $privateKey -> Path to your private.key file
-        3,                          // $maxTries -> Max tries for a single emit
-        false                       // $ignoreErrors -> If set to true it will not throw errors if emit fails
-    );
+$gaze = new Gaze(
+    "http://localhost:3333",    // $hubUrl -> Url to the hub
+    __DIR__ . "/private.key",   // $privateKey -> Path to your private.key file
+    3,                          // $maxTries -> Max tries for a single emit
+    false                       // $ignoreErrors -> If set to true it will not throw errors if emit fails
+);
 
-    /**
-     * Example: 1
-     * This will emit an new event to the hub with the name "ProductUpdated/1"
-     * The payload that will be send is $product
-     * The only listerners that will recieve the event are users with the role "admin"
-     */
-    $gaze->emit("ProductUpdated/1", $product, "admin");
+/**
+ * Example: 1
+ * This will emit an new event to the hub with the name "ProductUpdated/1"
+ * The payload that will be send is $product
+ * The only listerners that will recieve the event are users with the role "admin"
+ */
+$gaze->emit("ProductUpdated/1", $product, "admin");
 
 
-    /**
-     * Example: 2
-     * This will emit an new event to the hub with the name "ProductCreated"
-     * The payload that will be send is $newProduct
-     * The role is not specified, thus it will be recieved by everyone
-     */
-    $gaze->emit("ProductCreated", $newProduct);
+/**
+ * Example: 2
+ * This will emit an new event to the hub with the name "ProductCreated"
+ * The payload that will be send is $newProduct
+ * The role is not specified, thus it will be recieved by everyone
+ */
+$gaze->emit("ProductCreated", $newProduct);
 ```
