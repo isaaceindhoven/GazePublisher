@@ -42,7 +42,7 @@ To create this pair run the following command in your terminal:
 ## Symfony
 
 ### Adding .env variables
-```
+```dotenv
 # url where the hub is hosted at
 GAZEHUB_URL="http://localhost:8000"
 
@@ -64,7 +64,7 @@ services:
             $ignoreErrors: false
 ```
 
-### 3 - Add **/token** endpoint
+### Add **/token** endpoint
 
 ```php
 /**
@@ -80,8 +80,50 @@ public function index(Gaze $gaze): Response
 
 ## Laravel
 
+### Adding .env variables
+```dotenv
+# url where the hub is hosted at
+GAZEHUB_URL="http://localhost:8000"
+
+# the path location of the primairy key file
+PRIVATE_KEY_PATH="./private.key"
+```
+
+### Add config file
+Add a config file in /config/gaze.php and add the following content:
 ```php
-// TODO
+<?php
+return [
+    'hubUrl' => env('GAZEHUB_URL'),
+    'tokenUrl' => env('GAZEHUB_TOKEN_URL'),
+    'privateKeyPath' => __DIR__ . '/../' . env('PRIVATE_KEY_PATH')
+];
+```
+
+### Create Gaze provider
+```shell script
+php artisan make:provider GazeProvider
+```
+
+And add the following in the register method:
+```php
+$this->app->singleton(Gaze::class, function() {
+    return new Gaze(config('gaze.hubUrl'), config('gaze.privateKeyPath'));
+});
+```
+
+### Add **/token** endpoint
+```php
+public function index(Gaze $gaze) {
+    return response()->json([
+        'token' => $gaze->generateClientToken(['user'])
+    ]);
+}
+```
+
+And register this route in /routes/web.php
+```php
+Route::get('/token', [\App\Http\Controllers\TokenController::class, 'token']);
 ```
 
 ## ⚡️ Usage
