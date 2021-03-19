@@ -15,7 +15,7 @@ This library is used for emitting events from a backend to the [GazeHub](https:/
 
 "require": {
     ...
-    "isaac/gazephp" : "dev-master",
+    "isaac/gaze" : "dev-master",
     ...
 }
 
@@ -23,7 +23,7 @@ This library is used for emitting events from a backend to the [GazeHub](https:/
 
 ### Install the composer package
 ```shell
-composer update isaac/gazephp
+composer update isaac/gaze
 ```
 
 ### Creating a Public and Private keypair
