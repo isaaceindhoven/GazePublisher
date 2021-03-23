@@ -135,7 +135,7 @@ class Gaze
     {
         return JWT::encode([
             'roles' => $clientRoles,
-            'jti' => uniqid(rand(), true),
+            'jti' => uniqid((string) rand(), true),
             'exp' => $this->timestampAfterMinutes($minutesValid),
         ], $this->privateKeyContent, 'RS256');
     }
