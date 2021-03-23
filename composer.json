@@ -19,7 +19,6 @@
     },
     "require": {
         "firebase/php-jwt": "^5.2",
-        "ramsey/uuid": "^4.1",
         "ext-curl": "*",
         "ext-json": "*"
     },

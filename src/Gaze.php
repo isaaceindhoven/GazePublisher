@@ -18,7 +18,6 @@ use GazePHP\Exceptions\GazeEmitException;
 use GazePHP\Exceptions\GazeHubUrlInvalidException;
 use GazePHP\Exceptions\PrivateKeyNotValidException;
 use JsonSerializable;
-use Ramsey\Uuid\Uuid;
 
 use function curl_close;
 use function curl_exec;
@@ -134,11 +133,9 @@ class Gaze
 
     public function generateClientToken(array $clientRoles = [], int $minutesValid = 300): string
     {
-        $uuid = Uuid::uuid4();
-
         return JWT::encode([
             'roles' => $clientRoles,
-            'jti' => $uuid->toString(),
+            'jti' => uniqid(rand(), true),
             'exp' => $this->timestampAfterMinutes($minutesValid),
         ], $this->privateKeyContent, 'RS256');
     }
