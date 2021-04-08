@@ -1,4 +1,4 @@
-# GazePHP
+# GazePublisher
 
 This library is used for emitting events from a backend to the [GazeHub](https://gitlab.isaac.nl/study/php-chapter/real-time-ui-updates/gazehub)
 
@@ -9,7 +9,7 @@ This library is used for emitting events from a backend to the [GazeHub](https:/
 "repositories": [
     {
         "type": "vcs",
-        "url": "ssh://git@gitlab.isaac.local/study/php-chapter/real-time-ui-updates/gazephp.git"
+        "url": "ssh://git@gitlab.isaac.local/study/php-chapter/real-time-ui-updates/gazepublisher.git"
     }
 ]
 
@@ -28,7 +28,7 @@ composer update isaac/gaze
 
 ### Creating a Public and Private keypair
 
-> GazePHP uses JWT token which are encryped using a public and private keypair.<br/>
+> GazePublisher uses JWT token which are encryped using a public and private keypair.<br/>
 To create this pair run the following command in your terminal:
 
 ```shell
@@ -56,7 +56,7 @@ PRIVATE_KEY_PATH="./private.key"
 
 services:
     # ...
-    GazePHP\Gaze:
+    ISAAC\GazePublisher\Gaze:
         arguments:
             $hubUrl: '%env(GAZEHUB_URL)%'
             $privateKey: '../%env(PRIVATE_KEY_PATH)%'
