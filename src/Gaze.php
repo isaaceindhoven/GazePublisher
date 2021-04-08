@@ -78,9 +78,9 @@ class Gaze
     }
 
     /**
-     * @param array|JsonSerializable $payload
+     * @param null|array|JsonSerializable $payload
      */
-    public function emit(string $name, $payload, string $role = null): void
+    public function emit(string $name, $payload = null, string $role = null): void
     {
         $httpCode = $this->sendEvent($name, $payload, $role);
         $tries = 1;
@@ -97,7 +97,7 @@ class Gaze
     /**
      * @param array|JsonSerializable $payload
      */
-    private function sendEvent(string $name, $payload = null, string $role = null): int
+    private function sendEvent(string $name, $payload, string $role = null): int
     {
         $jwt = JWT::encode([
             'role' => 'server',
