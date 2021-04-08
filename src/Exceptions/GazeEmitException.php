@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace GazePHP\Exceptions;
+namespace ISAAC\GazePublisher\Exceptions;
 
 use Exception;
 

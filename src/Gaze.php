@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace GazePHP;
+namespace ISAAC\GazePublisher;
 
 use Firebase\JWT\JWT;
-use GazePHP\Exceptions\GazeEmitException;
-use GazePHP\Exceptions\GazeHubUrlInvalidException;
-use GazePHP\Exceptions\PrivateKeyNotValidException;
+use ISAAC\GazePublisher\Exceptions\GazeEmitException;
+use ISAAC\GazePublisher\Exceptions\GazeHubUrlInvalidException;
+use ISAAC\GazePublisher\Exceptions\PrivateKeyNotValidException;
 use JsonSerializable;
 
 use function curl_close;
@@ -97,7 +97,7 @@ class Gaze
     /**
      * @param array|JsonSerializable $payload
      */
-    private function sendEvent(string $name, $payload, string $role = null): int
+    private function sendEvent(string $name, $payload = null, string $role = null): int
     {
         $jwt = JWT::encode([
             'role' => 'server',

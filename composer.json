@@ -14,7 +14,7 @@
     "license": "proprietary",
     "autoload": {
         "psr-4": {
-            "GazePHP\\": "src/"
+            "ISAAC\\GazePublisher\\": "src/"
         }
     },
     "require": {
