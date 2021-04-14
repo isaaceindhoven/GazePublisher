@@ -16,21 +16,20 @@ namespace ISAAC\GazePublisher;
 use Firebase\JWT\JWT;
 use ISAAC\GazePublisher\Exceptions\GazeEmitException;
 use ISAAC\GazePublisher\Exceptions\GazeHubUrlInvalidException;
-use ISAAC\GazePublisher\Exceptions\PrivateKeyNotValidException;
 use JsonSerializable;
 
+use function array_merge;
 use function curl_close;
 use function curl_exec;
 use function curl_getinfo;
 use function curl_init;
 use function curl_setopt;
-use function file_exists;
-use function file_get_contents;
 use function filter_var;
 use function json_encode;
-use function strpos;
+use function rand;
 use function substr;
 use function time;
+use function uniqid;
 
 use const CURLINFO_HTTP_CODE;
 use const CURLOPT_HTTPHEADER;
@@ -63,30 +62,37 @@ class Gaze
     private $ignoreErrors;
 
     /**
-     * @param string $privateKey Can be passed as the **key path** location or **file contents**.
+     * @param string $hubUrl
+     * @param string $privateKeyContent
+     * @param int $maxTries
+     * @param bool $ignoreErrors
+     * @throws GazeHubUrlInvalidException
      */
     public function __construct(
         string $hubUrl,
-        string $privateKey,
+        string $privateKeyContent,
         int $maxTries = 3,
         bool $ignoreErrors = false
     ) {
         $this->setHubUrl($hubUrl);
-        $this->setPrivateKey($privateKey);
+        $this->privateKeyContent = $privateKeyContent;
         $this->maxTries = $maxTries;
         $this->ignoreErrors = $ignoreErrors;
     }
 
     /**
-     * @param null|array|JsonSerializable $payload
+     * @param string $topic
+     * @param null|mixed $payload
+     * @param string|null $role
+     * @throws GazeEmitException
      */
-    public function emit(string $name, $payload = null, string $role = null): void
+    public function emit(string $topic, $payload = null, string $role = null): void
     {
-        $httpCode = $this->sendEvent($name, $payload, $role);
+        $httpCode = $this->sendToHub($topic, $payload, $role);
         $tries = 1;
 
         while ($httpCode !== 200 && ++$tries <= $this->maxTries) {
-            $httpCode = $this->sendEvent($name, $payload, $role);
+            $httpCode = $this->sendToHub($topic, $payload, $role);
         }
 
         if (!$this->ignoreErrors && $httpCode !== 200) {
@@ -95,19 +101,29 @@ class Gaze
     }
 
     /**
-     * @param array|JsonSerializable $payload
+     * @param string[] $clientRoles
+     * @param int $minutesValid
+     * @return string
      */
-    private function sendEvent(string $name, $payload, string $role = null): int
+    public function generateClientToken(array $clientRoles = [], int $minutesValid = 300): string
     {
-        $jwt = JWT::encode([
-            'role' => 'server',
-            'exp' => $this->timestampAfterMinutes(1),
-        ], $this->privateKeyContent, 'RS256');
+        return $this->generateJwt(['roles' => $clientRoles], $minutesValid);
+    }
+
+    /**
+     * @param string $topic
+     * @param mixed $payload
+     * @param string|null $role
+     * @return int
+     */
+    private function sendToHub(string $topic, $payload, string $role = null): int
+    {
+        $jwt = $this->generateJwt(['role' => 'server'], 1);
 
         $ch = $this->getCurl(
             $this->hubUrl . '/event',
-            ['payload' => $payload, 'topic' => $name, 'role' => $role ],
-            ['Content-Type:application/json', 'Authorization: Bearer ' . $jwt ]
+            ['payload' => $payload, 'topic' => $topic, 'role' => $role ],
+            ['Content-Type: application/json', 'Authorization: Bearer ' . $jwt ]
         );
         curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -117,7 +133,9 @@ class Gaze
     }
 
     /**
-     * @param array|JsonSerializable $payload
+     * @param string $url
+     * @param mixed $payload
+     * @param string[] $headers
      * @return resource
      */
     private function getCurl(string $url, $payload, array $headers)
@@ -131,21 +149,24 @@ class Gaze
         return $ch;
     }
 
-    public function generateClientToken(array $clientRoles = [], int $minutesValid = 300): string
+    /**
+     * @param array<string, mixed> $data
+     * @param int $minutes
+     * @return string
+     */
+    private function generateJwt(array $data, int $minutes): string
     {
-        return JWT::encode([
-            'roles' => $clientRoles,
+        return JWT::encode(array_merge($data, [
+            'exp' => time() + 60 * $minutes,
             'jti' => uniqid((string) rand(), true),
-            'exp' => $this->timestampAfterMinutes($minutesValid),
-        ], $this->privateKeyContent, 'RS256');
+        ]), $this->privateKeyContent, 'RS256');
     }
 
-    private function timestampAfterMinutes(int $minutes = 0): int
-    {
-        return time() + 60 * $minutes;
-    }
-
-    private function setHubUrl(string $hubUrl)
+    /**
+     * @param string $hubUrl
+     * @throws GazeHubUrlInvalidException
+     */
+    private function setHubUrl(string $hubUrl): void
     {
         if (filter_var($hubUrl, FILTER_VALIDATE_URL) === false) {
             throw new GazeHubUrlInvalidException();
@@ -154,18 +175,5 @@ class Gaze
             $hubUrl = substr($hubUrl, 0, -1);
         }
         $this->hubUrl = $hubUrl;
-    }
-
-    private function setPrivateKey(string $privateKey)
-    {
-        if (strpos($privateKey, '-----BEGIN RSA PRIVATE KEY-----') !== 0) {
-            if (file_exists($privateKey)) {
-                $privateKey = file_get_contents($privateKey);
-            } else {
-                throw new PrivateKeyNotValidException();
-            }
-        }
-
-        $this->privateKeyContent = $privateKey;
     }
 }

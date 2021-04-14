@@ -23,6 +23,7 @@
         "ext-json": "*"
     },
     "require-dev": {
-        "isaac/php-code-sniffer-standard": "^21.0"
+        "isaac/php-code-sniffer-standard": "^21.0",
+        "phpstan/phpstan": "^0.12.83"
     }
 }
