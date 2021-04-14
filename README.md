@@ -108,7 +108,7 @@ php artisan make:provider GazeProvider
 And add the following in the register method:
 ```php
 $this->app->singleton(Gaze::class, function() {
-    return new Gaze(config('gaze.hubUrl'), config('gaze.privateKeyPath'));
+    return new Gaze(config('gaze.hubUrl'), file_get_contents(config('gaze.privateKeyPath')));
 });
 ```
 
@@ -130,10 +130,10 @@ Route::get('/token', [\App\Http\Controllers\TokenController::class, 'token']);
 
 ```php
 $gaze = new Gaze(
-    "http://localhost:3333",    // $hubUrl -> Url to the hub
-    __DIR__ . "/private.key",   // $privateKey -> Path to your private.key file
-    3,                          // $maxTries -> Max tries for a single emit
-    false                       // $ignoreErrors -> If set to true it will not throw errors if emit fails
+    "http://localhost:3333", // $hubUrl -> Url to the hub
+    file_get_contents(__DIR__ . "/private.key"), // $privateKeyContent -> Content of your private.key file
+    3, // $maxTries -> Max tries for a single emit
+    false // $ignoreErrors -> If set to true it will not throw errors if emit fails
 );
 
 
