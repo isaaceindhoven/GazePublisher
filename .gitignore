@@ -1,4 +1,5 @@
-/vendor/
+/vendor
 .idea
 .zshrc
 /*.key
+.phpunit.result.cache
