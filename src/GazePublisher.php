@@ -14,9 +14,12 @@ declare(strict_types=1);
 namespace ISAAC\GazePublisher;
 
 use Firebase\JWT\JWT;
-use ISAAC\GazePublisher\Exceptions\GazeEmitException;
-use ISAAC\GazePublisher\Exceptions\GazeHubUrlInvalidException;
-use JsonSerializable;
+use ISAAC\GazePublisher\Exceptions\InvalidGazeHubUrlException;
+use ISAAC\GazePublisher\ErrorHandlers\IErrorHandler;
+use ISAAC\GazePublisher\ErrorHandlers\RethrowingErrorHandler;
+use ISAAC\GazePublisher\Exceptions\HubEmitRejectedException;
+use ISAAC\GazePublisher\Exceptions\InvalidPayloadException;
+use JsonException;
 
 use function array_merge;
 use function curl_close;
@@ -27,7 +30,6 @@ use function curl_setopt;
 use function filter_var;
 use function json_encode;
 use function rand;
-use function substr;
 use function time;
 use function uniqid;
 
@@ -39,7 +41,7 @@ use const CURLOPT_RETURNTRANSFER;
 use const CURLOPT_URL;
 use const FILTER_VALIDATE_URL;
 
-class Gaze
+class GazePublisher
 {
     /**
      * @var string
@@ -54,60 +56,65 @@ class Gaze
     /**
      * @var int
      */
-    private $maxTries;
+    private $maxRetries;
 
     /**
-     * @var bool
+     * @var IErrorHandler
      */
-    private $ignoreErrors;
+    private $errorHandler;
 
     /**
      * @param string $hubUrl
      * @param string $privateKeyContent
-     * @param int $maxTries
-     * @param bool $ignoreErrors
-     * @throws GazeHubUrlInvalidException
+     * @param int $maxRetries
+     * @param IErrorHandler $errorHandler
+     * @throws InvalidGazeHubUrlException
      */
     public function __construct(
         string $hubUrl,
         string $privateKeyContent,
-        int $maxTries = 3,
-        bool $ignoreErrors = false
+        int $maxRetries = 3,
+        IErrorHandler $errorHandler = null
     ) {
         $this->setHubUrl($hubUrl);
         $this->privateKeyContent = $privateKeyContent;
-        $this->maxTries = $maxTries;
-        $this->ignoreErrors = $ignoreErrors;
+        $this->maxRetries = $maxRetries;
+        if ($errorHandler === null){
+            $this->errorHandler = new RethrowingErrorHandler();
+        }else{
+            $this->errorHandler = $errorHandler;
+        }
+
     }
 
     /**
      * @param string $topic
      * @param null|mixed $payload
      * @param string|null $role
-     * @throws GazeEmitException
+     * @throws HubEmitRejectedException
      */
     public function emit(string $topic, $payload = null, string $role = null): void
     {
         $httpCode = $this->sendToHub($topic, $payload, $role);
         $tries = 1;
 
-        while ($httpCode !== 200 && ++$tries <= $this->maxTries) {
+        while ($httpCode !== 200 && ++$tries <= $this->maxRetries) {
             $httpCode = $this->sendToHub($topic, $payload, $role);
         }
 
-        if (!$this->ignoreErrors && $httpCode !== 200) {
-            throw new GazeEmitException();
+        if ($httpCode !== 200) {
+            $this->errorHandler->handleException(new HubEmitRejectedException());
         }
     }
 
     /**
      * @param string[] $clientRoles
-     * @param int $minutesValid
+     * @param int $expirationInMinutes
      * @return string
      */
-    public function generateClientToken(array $clientRoles = [], int $minutesValid = 300): string
+    public function generateClientToken(array $clientRoles = [], int $expirationInMinutes = 300): string
     {
-        return $this->generateJwt(['roles' => $clientRoles], $minutesValid);
+        return $this->generateJwt(['roles' => $clientRoles], $expirationInMinutes);
     }
 
     /**
@@ -137,43 +144,48 @@ class Gaze
      * @param mixed $payload
      * @param string[] $headers
      * @return resource
+     * @throws JsonException
      */
     private function getCurl(string $url, $payload, array $headers)
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        return $ch;
+        try{
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_THROW_ON_ERROR));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            return $ch;
+        }catch(JsonException $e){
+            $this->errorHandler->handleException(new InvalidPayloadException());
+        }
     }
 
     /**
      * @param array<string, mixed> $data
-     * @param int $minutes
+     * @param int $expirationInMinutes
      * @return string
      */
-    private function generateJwt(array $data, int $minutes): string
+    private function generateJwt(array $data, int $expirationInMinutes): string
     {
-        return JWT::encode(array_merge($data, [
-            'exp' => time() + 60 * $minutes,
+        $payload =  $data + [
+            'exp' => time() + 60 * $expirationInMinutes,
             'jti' => uniqid((string) rand(), true),
-        ]), $this->privateKeyContent, 'RS256');
+        ];
+        
+        return JWT::encode($payload, $this->privateKeyContent, 'RS256');
     }
 
     /**
      * @param string $hubUrl
-     * @throws GazeHubUrlInvalidException
+     * @throws InvalidGazeHubUrlException
      */
     private function setHubUrl(string $hubUrl): void
     {
         if (filter_var($hubUrl, FILTER_VALIDATE_URL) === false) {
-            throw new GazeHubUrlInvalidException();
+            $this->errorHandler->handleException(new InvalidGazeHubUrlException());
         }
-        if ($hubUrl[-1] === '/') {
-            $hubUrl = substr($hubUrl, 0, -1);
-        }
-        $this->hubUrl = $hubUrl;
+
+        $this->hubUrl = rtrim($hubUrl, '/');
     }
 }

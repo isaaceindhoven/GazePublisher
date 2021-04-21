@@ -6,24 +6,17 @@ This library is used for emitting events from a backend to the [GazeHub](https:/
 
 ### Add Gitlab repo link to your composer.json
 ```js
-"repositories": [
+'repositories': [
     {
-        "type": "vcs",
-        "url": "ssh://git@gitlab.isaac.local/study/php-chapter/real-time-ui-updates/gazepublisher.git"
+        'type': 'vcs',
+        'url': 'ssh://git@gitlab.isaac.local/study/php-chapter/real-time-ui-updates/gazepublisher.git'
     }
 ]
-
-"require": {
-    ...
-    "isaac/gaze" : "dev-master",
-    ...
-}
-
 ```
 
 ### Install the composer package
 ```shell
-composer update isaac/gaze
+composer require isaac/gazepublisher
 ```
 
 ### Creating a Public and Private keypair
@@ -44,33 +37,54 @@ To create this pair run the following command in your terminal:
 ### Adding .env variables
 ```dotenv
 # url where the hub is hosted at
-GAZEHUB_URL="http://localhost:8000"
+GAZEHUB_URL='http://localhost:8000'
 
 # the path location of the primairy key file
-PRIVATE_KEY_PATH="./private.key"
+PRIVATE_KEY_PATH='./private.key'
 ```
 
 ### Add Gaze as a service in config/services.yaml
+
 ```yaml
 # file: config/services.yaml
 
 services:
-    # ...
-    ISAAC\GazePublisher\Gaze:
-        arguments:
-            $hubUrl: '%env(GAZEHUB_URL)%'
-            $privateKey: '../%env(PRIVATE_KEY_PATH)%'
-            $maxTries: 3
-            $ignoreErrors: false
+    ISAAC\GazePublisher\GazePublisher:
+        factory: ['App\Factory\GazePublisherFactory', 'create']
+```
+
+### Create the factory
+```php
+<?php
+
+// file: src/Factory/GazePublisherFactory.php
+
+namespace App\Factory;
+
+use ISAAC\GazePublisher\GazePublisher;
+use Symfony\Component\HttpKernel\KernelInterface;
+
+class GazePublisherFactory
+{​​​​​
+    public static function create(KernelInterface $kernel)
+    {​​​​​
+        $hubUrl = $_ENV['GAZEHUB_URL'];
+        $privateKeyPath = realpath($kernel->getProjectDir(). '/' . $_ENV['PRIVATE_KEY_PATH']);
+        $privateKeyContents = file_get_contents($privateKeyPath);
+        return new GazePublisher($hubUrl, $privateKeyContents);
+    }​​​​​
+}​​​​​
 ```
 
 ### Add **/token** endpoint
 
+> When a client connects to GazeHub it needs to authenticate itself. GazeHub has no knowledge about your users or auth-method in your backend (Symfony, Laravel or Magento). The `/token` endpoint is defined in your backend to generate a JWT token for the client to use when communicating with the GazeHub.
+
 ```php
 /**
- * @Route("/token", name="token")
+ * @Route('/token', name='token')
  */
-public function index(Gaze $gaze): Response
+public function index(GazePublisher $gaze): Response
 {
     return new JsonResponse([
         'token' => $gaze->generateClientToken($this->getUser()->getRoles())
@@ -83,10 +97,10 @@ public function index(Gaze $gaze): Response
 ### Adding .env variables
 ```dotenv
 # url where the hub is hosted at
-GAZEHUB_URL="http://localhost:8000"
+GAZEHUB_URL='http://localhost:8000'
 
 # the path location of the primairy key file
-PRIVATE_KEY_PATH="./private.key"
+PRIVATE_KEY_PATH='./private.key'
 ```
 
 ### Add config file
@@ -102,19 +116,21 @@ return [
 
 ### Create Gaze provider
 ```shell script
-php artisan make:provider GazeProvider
+php artisan make:provider GazePublisherProvider
 ```
 
 And add the following in the register method:
 ```php
-$this->app->singleton(Gaze::class, function() {
-    return new Gaze(config('gaze.hubUrl'), file_get_contents(config('gaze.privateKeyPath')));
+$this->app->singleton(GazePublisher::class, function() {
+    $privateKeyPath = base_path(config('gaze.privateKeyPath'))
+    $privateKeyContents = file_get_contents($privateKeyPath);
+    return new GazePublisher(config('gaze.hubUrl'), $privateKeyContents);
 });
 ```
 
 ### Add **/token** endpoint
 ```php
-public function index(Gaze $gaze) {
+public function index(GazePublisher $gaze) {
     return response()->json([
         'token' => $gaze->generateClientToken(['user'])
     ]);
@@ -129,28 +145,20 @@ Route::get('/token', [\App\Http\Controllers\TokenController::class, 'token']);
 ## ⚡️ Usage
 
 ```php
-$gaze = new Gaze(
-    "http://localhost:3333", // $hubUrl -> Url to the hub
-    file_get_contents(__DIR__ . "/private.key"), // $privateKeyContent -> Content of your private.key file
-    3, // $maxTries -> Max tries for a single emit
-    false // $ignoreErrors -> If set to true it will not throw errors if emit fails
-);
-
-
 /**
  * Example: 1
- * This will emit an new event to the hub with the name "ProductUpdated/1"
+ * This will emit an new event to the hub with the name 'ProductUpdated/1'
  * The payload that will be send is $product
- * The only listerners that will recieve the event are users with the role "admin"
+ * The only listerners that will recieve the event are users with the role 'admin'
  */
-$gaze->emit("ProductUpdated/1", $product, "admin");
+$gaze->emit('ProductUpdated/1', $product, 'admin');
 
 
 /**
  * Example: 2
- * This will emit an new event to the hub with the name "ProductCreated"
+ * This will emit an new event to the hub with the name 'ProductCreated'
  * The payload that will be send is $newProduct
  * The role is not specified, thus it will be recieved by everyone
  */
-$gaze->emit("ProductCreated", $newProduct);
+$gaze->emit('ProductCreated', $newProduct);
 ```

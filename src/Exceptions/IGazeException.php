@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace ISAAC\GazePublisher\Exceptions;
 
-use Exception;
+use Throwable;
 
-class InvalidGazeHubUrlException extends Exception implements IGazeException
-{
+interface IGazeException extends Throwable {
+
 }

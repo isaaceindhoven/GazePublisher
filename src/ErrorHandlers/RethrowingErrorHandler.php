@@ -11,10 +11,14 @@
 
 declare(strict_types=1);
 
-namespace ISAAC\GazePublisher\Exceptions;
+namespace ISAAC\GazePublisher\ErrorHandlers;
 
 use Exception;
 
-class GazeEmitException extends Exception
-{
+class RethrowingErrorHandler implements IErrorHandler {
+
+    public function handleException(Exception $exception){
+        throw $exception;
+    }
+
 }

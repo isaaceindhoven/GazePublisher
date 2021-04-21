@@ -15,6 +15,6 @@ namespace ISAAC\GazePublisher\Exceptions;
 
 use Exception;
 
-class InvalidGazeHubUrlException extends Exception implements IGazeException
+class InvalidPayloadException extends Exception implements IGazeException
 {
 }

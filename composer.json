@@ -1,14 +1,10 @@
 {
     "name": "isaac/gazepublisher",
-    "description": "Client library for GazeHub",
+    "description": "Publish library for GazeHub",
     "authors": [
         {
             "name": "Bader Ali",
             "email": "bader.ali@isaac.nl"
-        },
-        {
-            "name": "Daan van Berkel",
-            "email": "daan.vanberkel@isaac.nl"
         }
     ],
     "license": "proprietary",
@@ -18,12 +14,18 @@
         }
     },
     "require": {
-        "firebase/php-jwt": "^5.2",
+        "php": "~7.3.0 || ~7.4.0 || ~8.0.0",
         "ext-curl": "*",
-        "ext-json": "*"
+        "ext-json": "*",
+        "firebase/php-jwt": "^5.2"
     },
     "require-dev": {
         "isaac/php-code-sniffer-standard": "^21.0",
-        "phpstan/phpstan": "^0.12.83"
+        "phpstan/extension-installer": "^1.1",
+        "phpstan/phpstan": "^0.12.84",
+        "phpstan/phpstan-strict-rules": "^0.12.9"
+    },
+    "config": {
+        "sort-packages": true
     }
 }
