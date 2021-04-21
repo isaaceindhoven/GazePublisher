@@ -17,10 +17,12 @@
         "php": "~7.3.0 || ~7.4.0 || ~8.0.0",
         "ext-curl": "*",
         "ext-json": "*",
-        "firebase/php-jwt": "^5.2"
+        "firebase/php-jwt": "^5.2",
+        "phpunit/phpunit": "^9.5"
     },
     "require-dev": {
         "isaac/php-code-sniffer-standard": "^21.0",
+        "nunomaduro/collision": "^5.4",
         "phpstan/extension-installer": "^1.1",
         "phpstan/phpstan": "^0.12.84",
         "phpstan/phpstan-strict-rules": "^0.12.9"

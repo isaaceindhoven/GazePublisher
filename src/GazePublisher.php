@@ -19,13 +19,10 @@ use ISAAC\GazePublisher\ErrorHandlers\RethrowingErrorHandler;
 use ISAAC\GazePublisher\Exceptions\HubEmitRejectedException;
 use ISAAC\GazePublisher\Exceptions\InvalidGazeHubUrlException;
 use ISAAC\GazePublisher\Exceptions\InvalidPayloadException;
+use ISAAC\GazePublisher\HttpClient\CurlClient;
+use ISAAC\GazePublisher\HttpClient\IHttpClient;
 use JsonException;
 
-use function curl_close;
-use function curl_exec;
-use function curl_getinfo;
-use function curl_init;
-use function curl_setopt;
 use function filter_var;
 use function json_encode;
 use function rand;
@@ -33,12 +30,6 @@ use function rtrim;
 use function time;
 use function uniqid;
 
-use const CURLINFO_HTTP_CODE;
-use const CURLOPT_HTTPHEADER;
-use const CURLOPT_POST;
-use const CURLOPT_POSTFIELDS;
-use const CURLOPT_RETURNTRANSFER;
-use const CURLOPT_URL;
 use const FILTER_VALIDATE_URL;
 use const JSON_THROW_ON_ERROR;
 
@@ -65,26 +56,38 @@ class GazePublisher
     private $errorHandler;
 
     /**
+     * @var IHttpClient
+     */
+    private $httpClient;
+
+    /**
      * @param string $hubUrl
      * @param string $privateKeyContent
      * @param int $maxRetries
      * @param IErrorHandler $errorHandler
+     * @param IHttpClient $httpClient
      * @throws InvalidGazeHubUrlException
      */
     public function __construct(
         string $hubUrl,
         string $privateKeyContent,
         int $maxRetries = 3,
-        IErrorHandler $errorHandler = null
+        IErrorHandler $errorHandler = null,
+        IHttpClient $httpClient = null
     ) {
+        if ($errorHandler === null) {
+            $errorHandler = new RethrowingErrorHandler();
+        }
+
+        if ($httpClient === null) {
+            $httpClient = new CurlClient();
+        }
+
         $this->setHubUrl($hubUrl);
         $this->privateKeyContent = $privateKeyContent;
         $this->maxRetries = $maxRetries;
-        if ($errorHandler === null) {
-            $this->errorHandler = new RethrowingErrorHandler();
-        } else {
-            $this->errorHandler = $errorHandler;
-        }
+        $this->errorHandler = $errorHandler;
+        $this->httpClient = $httpClient;
     }
 
     /**
@@ -122,44 +125,22 @@ class GazePublisher
      * @param mixed $payload
      * @param string|null $role
      * @return int
+     * @throws InvalidPayloadException
      */
     private function sendToHub(string $topic, $payload, string $role = null): int
     {
         $jwt = $this->generateJwt(['role' => 'server'], 1);
 
-        $ch = $this->getCurl(
-            $this->hubUrl . '/event',
-            ['payload' => $payload, 'topic' => $topic, 'role' => $role ],
-            ['Content-Type: application/json', 'Authorization: Bearer ' . $jwt ]
-        );
-        curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        return $httpCode;
-    }
-
-    /**
-     * @param string $url
-     * @param mixed $payload
-     * @param string[] $headers
-     * @return resource
-     * @throws JsonException
-     */
-    private function getCurl(string $url, $payload, array $headers): mixed
-    {
-        $ch = curl_init();
-
         try {
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_THROW_ON_ERROR));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            return $this->httpClient->post(
+                $this->hubUrl . '/event',
+                json_encode(['payload' => $payload, 'topic' => $topic, 'role' => $role ], JSON_THROW_ON_ERROR),
+                ['Content-Type: application/json', 'Authorization: Bearer ' . $jwt ]
+            );
         } catch (JsonException $e) {
             $this->errorHandler->handleException(new InvalidPayloadException());
+            return 500;
         }
-        return $ch;
     }
 
     /**
