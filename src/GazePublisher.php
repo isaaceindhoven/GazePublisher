@@ -14,14 +14,13 @@ declare(strict_types=1);
 namespace ISAAC\GazePublisher;
 
 use Firebase\JWT\JWT;
-use ISAAC\GazePublisher\Exceptions\InvalidGazeHubUrlException;
 use ISAAC\GazePublisher\ErrorHandlers\IErrorHandler;
 use ISAAC\GazePublisher\ErrorHandlers\RethrowingErrorHandler;
 use ISAAC\GazePublisher\Exceptions\HubEmitRejectedException;
+use ISAAC\GazePublisher\Exceptions\InvalidGazeHubUrlException;
 use ISAAC\GazePublisher\Exceptions\InvalidPayloadException;
 use JsonException;
 
-use function array_merge;
 use function curl_close;
 use function curl_exec;
 use function curl_getinfo;
@@ -30,6 +29,7 @@ use function curl_setopt;
 use function filter_var;
 use function json_encode;
 use function rand;
+use function rtrim;
 use function time;
 use function uniqid;
 
@@ -40,6 +40,7 @@ use const CURLOPT_POSTFIELDS;
 use const CURLOPT_RETURNTRANSFER;
 use const CURLOPT_URL;
 use const FILTER_VALIDATE_URL;
+use const JSON_THROW_ON_ERROR;
 
 class GazePublisher
 {
@@ -79,12 +80,11 @@ class GazePublisher
         $this->setHubUrl($hubUrl);
         $this->privateKeyContent = $privateKeyContent;
         $this->maxRetries = $maxRetries;
-        if ($errorHandler === null){
+        if ($errorHandler === null) {
             $this->errorHandler = new RethrowingErrorHandler();
-        }else{
+        } else {
             $this->errorHandler = $errorHandler;
         }
-
     }
 
     /**
@@ -146,19 +146,20 @@ class GazePublisher
      * @return resource
      * @throws JsonException
      */
-    private function getCurl(string $url, $payload, array $headers)
+    private function getCurl(string $url, $payload, array $headers): mixed
     {
-        try{
-            $ch = curl_init();
+        $ch = curl_init();
+
+        try {
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_THROW_ON_ERROR));
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            return $ch;
-        }catch(JsonException $e){
+        } catch (JsonException $e) {
             $this->errorHandler->handleException(new InvalidPayloadException());
         }
+        return $ch;
     }
 
     /**
@@ -172,7 +173,7 @@ class GazePublisher
             'exp' => time() + 60 * $expirationInMinutes,
             'jti' => uniqid((string) rand(), true),
         ];
-        
+
         return JWT::encode($payload, $this->privateKeyContent, 'RS256');
     }
 

@@ -15,10 +15,9 @@ namespace ISAAC\GazePublisher\ErrorHandlers;
 
 use Exception;
 
-class IgnoringErrorHander implements IErrorHandler {
-
-    public function handleException(Exception $exception){
-
+class IgnoringErrorHander implements IErrorHandler
+{
+    public function handleException(Exception $exception): void
+    {
     }
-
 }
