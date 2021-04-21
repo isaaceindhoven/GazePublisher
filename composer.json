@@ -21,6 +21,8 @@
         "phpunit/phpunit": "^9.5"
     },
     "require-dev": {
+        "isaac/composer-git-hooks": "^1.2",
+        "isaac/composer-git-hooks-standard": "^1.3",
         "isaac/php-code-sniffer-standard": "^21.0",
         "nunomaduro/collision": "^5.4",
         "phpstan/extension-installer": "^1.1",
@@ -29,5 +31,11 @@
     },
     "config": {
         "sort-packages": true
+    },
+    "repositories": {
+        "isaac": {
+            "type": "composer",
+            "url": "https://composer-packages.hq.isaac.nl/repository"
+        }
     }
 }
