@@ -1,1 +1,23 @@
-../../../vendor/isaac/composer-git-hooks-standard/hooks/pre-commit.d/phpcs
+#!/usr/bin/env bash
+
+DOCKSAL_FIN_EXIST=$(fin 2>&1 > /dev/null)
+
+if [[ $DOCKSAL_FIN_EXIST -eq 0 && -e "$PWD/.docksal/commands/phpcs" ]]; then
+  PHPCS_CMD="$PWD/.docksal/commands/phpcs"
+  echo "Using PHP CodeSniffer in docksal"
+elif [[ -e "$PWD/vendor/bin/phpcs" ]]; then
+  PHPCS_CMD="$PWD/vendor/bin/phpcs"
+  echo "Using local PHP CodeSniffer"
+else
+  echo "Cannot find a PHP CodeSniffer installation."
+  exit 1
+fi
+
+$PHPCS_CMD
+RETVAL=$?
+
+if [[ -$RETVAL -ne 0 ]]; then
+  echo "PHP CodeSniffer errors detected!"
+  echo "$OUTPUT"
+  exit $RETVAL
+fi
