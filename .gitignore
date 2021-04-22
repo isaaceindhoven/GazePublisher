@@ -3,3 +3,4 @@
 .zshrc
 /*.key
 .phpunit.result.cache
+/coverage

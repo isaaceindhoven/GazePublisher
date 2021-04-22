@@ -15,6 +15,6 @@ namespace ISAAC\GazePublisher\Exceptions;
 
 use Exception;
 
-class HubEmitRejectedException extends Exception implements IGazeException
+class HubEmitRejectedException extends Exception implements GazeException
 {
 }

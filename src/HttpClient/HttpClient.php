@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ISAAC\GazePublisher\HttpClient;
 
-interface IHttpClient
+interface HttpClient
 {
     /**
      * @param string $url

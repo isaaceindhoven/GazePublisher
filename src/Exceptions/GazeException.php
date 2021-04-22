@@ -15,6 +15,6 @@ namespace ISAAC\GazePublisher\Exceptions;
 
 use Throwable;
 
-interface IGazeException extends Throwable
+interface GazeException extends Throwable
 {
 }

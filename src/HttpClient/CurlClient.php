@@ -26,7 +26,7 @@ use const CURLOPT_POSTFIELDS;
 use const CURLOPT_RETURNTRANSFER;
 use const CURLOPT_URL;
 
-class CurlClient implements IHttpClient
+class CurlClient implements HttpClient
 {
     /**
      * @param string $url

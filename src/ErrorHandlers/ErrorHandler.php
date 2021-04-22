@@ -15,7 +15,7 @@ namespace ISAAC\GazePublisher\ErrorHandlers;
 
 use Exception;
 
-interface IErrorHandler
+interface ErrorHandler
 {
     public function handleException(Exception $exception): void;
 }

@@ -14,13 +14,13 @@ declare(strict_types=1);
 namespace ISAAC\GazePublisher;
 
 use Firebase\JWT\JWT;
-use ISAAC\GazePublisher\ErrorHandlers\IErrorHandler;
+use ISAAC\GazePublisher\ErrorHandlers\ErrorHandler;
 use ISAAC\GazePublisher\ErrorHandlers\RethrowingErrorHandler;
 use ISAAC\GazePublisher\Exceptions\HubEmitRejectedException;
 use ISAAC\GazePublisher\Exceptions\InvalidGazeHubUrlException;
 use ISAAC\GazePublisher\Exceptions\InvalidPayloadException;
 use ISAAC\GazePublisher\HttpClient\CurlClient;
-use ISAAC\GazePublisher\HttpClient\IHttpClient;
+use ISAAC\GazePublisher\HttpClient\HttpClient;
 use JsonException;
 
 use function filter_var;
@@ -51,12 +51,12 @@ class GazePublisher
     private $maxRetries;
 
     /**
-     * @var IErrorHandler
+     * @var ErrorHandler
      */
     private $errorHandler;
 
     /**
-     * @var IHttpClient
+     * @var HttpClient
      */
     private $httpClient;
 
@@ -64,16 +64,16 @@ class GazePublisher
      * @param string $hubUrl
      * @param string $privateKeyContent
      * @param int $maxRetries
-     * @param IErrorHandler $errorHandler
-     * @param IHttpClient $httpClient
+     * @param ErrorHandler $errorHandler
+     * @param HttpClient $httpClient
      * @throws InvalidGazeHubUrlException
      */
     public function __construct(
         string $hubUrl,
         string $privateKeyContent,
         int $maxRetries = 3,
-        IErrorHandler $errorHandler = null,
-        IHttpClient $httpClient = null
+        ErrorHandler $errorHandler = null,
+        HttpClient $httpClient = null
     ) {
         if ($errorHandler === null) {
             $errorHandler = new RethrowingErrorHandler();
@@ -83,11 +83,11 @@ class GazePublisher
             $httpClient = new CurlClient();
         }
 
+        $this->errorHandler = $errorHandler;
+        $this->httpClient = $httpClient;
         $this->setHubUrl($hubUrl);
         $this->privateKeyContent = $privateKeyContent;
         $this->maxRetries = $maxRetries;
-        $this->errorHandler = $errorHandler;
-        $this->httpClient = $httpClient;
     }
 
     /**

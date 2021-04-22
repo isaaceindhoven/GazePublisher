@@ -15,6 +15,6 @@ namespace ISAAC\GazePublisher\Exceptions;
 
 use Exception;
 
-class InvalidPayloadException extends Exception implements IGazeException
+class InvalidPayloadException extends Exception implements GazeException
 {
 }

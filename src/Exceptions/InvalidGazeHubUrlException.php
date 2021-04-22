@@ -11,13 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ISAAC\GazePublisher\ErrorHandlers;
+namespace ISAAC\GazePublisher\Exceptions;
 
 use Exception;
 
-class IgnoringErrorHander implements IErrorHandler
+class InvalidGazeHubUrlException extends Exception implements GazeException
 {
-    public function handleException(Exception $exception): void
-    {
-    }
 }

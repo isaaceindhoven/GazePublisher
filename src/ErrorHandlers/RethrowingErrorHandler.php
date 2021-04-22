@@ -15,7 +15,7 @@ namespace ISAAC\GazePublisher\ErrorHandlers;
 
 use Exception;
 
-class RethrowingErrorHandler implements IErrorHandler
+class RethrowingErrorHandler implements ErrorHandler
 {
     public function handleException(Exception $exception): void
     {
