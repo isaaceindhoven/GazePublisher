@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ec19dc6c04837d02e7c54759c625509a",
+    "content-hash": "e9216bad7805061fc4e415de569971c4",
     "packages": [
         {
             "name": "doctrine/instantiator",
@@ -2398,56 +2398,6 @@
                 "source": "https://github.com/isaaceindhoven/composer-git-hooks/tree/v1.2.0"
             },
             "time": "2021-02-09T14:44:15+00:00"
-        },
-        {
-            "name": "isaac/composer-git-hooks-standard",
-            "version": "v1.3.0",
-            "source": {
-                "type": "git",
-                "url": "ssh://git@gitlab.isaac.local/php-module/isaac-composer-git-hooks-standard.git",
-                "reference": "848d099e4a99a14c6050762f51b4018f6ab97211"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://composer-packages.hq.isaac.nl/repository/dist/isaac/composer-git-hooks-standard/isaac-composer-git-hooks-standard-v1.3.0-3eb847.zip",
-                "reference": "848d099e4a99a14c6050762f51b4018f6ab97211",
-                "shasum": "540197458ca6d125d9430d02497a882293e86e20"
-            },
-            "require": {
-                "composer-plugin-api": "^1.1 || ^2.0",
-                "isaac/composer-git-hooks": "^1.1",
-                "php": "~7.3.0 || ~7.4.0 || ~8.0.0"
-            },
-            "require-dev": {
-                "composer/composer": "^1.10 || ^2.0",
-                "isaac/php-code-sniffer-standard": "^19.0",
-                "isaac/phpstorm-copyright": "^2.0",
-                "phpstan/extension-installer": "^1.0",
-                "phpstan/phpstan": "^0.12",
-                "phpstan/phpstan-strict-rules": "^0.12.4"
-            },
-            "type": "composer-plugin",
-            "extra": {
-                "class": "ISAAC\\ComposerGitHooksStandard\\ComposerPlugin"
-            },
-            "autoload": {
-                "psr-4": {
-                    "ISAAC\\ComposerGitHooksStandard\\": "src/"
-                }
-            },
-            "scripts": {
-                "post-install-cmd": [
-                    "ISAAC\\ComposerGitHooksStandard\\ComposerPlugin::process"
-                ],
-                "post-update-cmd": [
-                    "ISAAC\\ComposerGitHooksStandard\\ComposerPlugin::process"
-                ]
-            },
-            "license": [
-                "proprietary"
-            ],
-            "description": "ISAAC Composer Git Hooks standard hooks",
-            "time": "2021-02-09T15:06:39+00:00"
         },
         {
             "name": "isaac/php-code-sniffer-standard",
