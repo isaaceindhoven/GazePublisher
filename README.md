@@ -6,10 +6,10 @@ This library is used for emitting events from a backend to the [GazeHub](https:/
 
 ### Add Gitlab repo link to your composer.json
 ```js
-'repositories': [
+"repositories": [
     {
-        'type': 'vcs',
-        'url': 'ssh://git@gitlab.isaac.local/study/php-chapter/real-time-ui-updates/gazepublisher.git'
+        "type": "vcs",
+        "url": "ssh://git@gitlab.isaac.local/study/php-chapter/real-time-ui-updates/gazepublisher.git"
     }
 ]
 ```
@@ -19,17 +19,18 @@ This library is used for emitting events from a backend to the [GazeHub](https:/
 composer require isaac/gazepublisher
 ```
 
-### Creating a Public and Private keypair
+### Creating a public and private keypair
 
-> GazePublisher uses JWT token which are encryped using a public and private keypair.<br/>
+GazePublisher uses JWT tokens which are encrypted using a public and private keypair.
+
 To create this pair run the following command in your terminal:
 
 ```shell
 # Generate a private key with the name 'private.key'
-> openssl genrsa -out private.key 4096
+openssl genrsa -out private.key 4096
 
 # Extract a public key with the name 'public.key'
-> openssl rsa -in private.key -outform PEM -pubout -out public.key
+openssl rsa -in private.key -outform PEM -pubout -out public.key
 ```
 
 ## Symfony
@@ -39,7 +40,7 @@ To create this pair run the following command in your terminal:
 # url where the hub is hosted at
 GAZEHUB_URL='http://localhost:8000'
 
-# the path location of the primairy key file
+# the path location of the primary key file
 PRIVATE_KEY_PATH='./private.key'
 ```
 
@@ -78,7 +79,7 @@ class GazePublisherFactory
 
 ### Add **/token** endpoint
 
-> When a client connects to GazeHub it needs to authenticate itself. GazeHub has no knowledge about your users or auth-method in your backend (Symfony, Laravel or Magento). The `/token` endpoint is defined in your backend to generate a JWT token for the client to use when communicating with the GazeHub.
+When a client connects to GazeHub it needs to authenticate itself. GazeHub has no knowledge about your users or auth-method in your backend (Symfony, Laravel or Magento). The `/token` endpoint is defined in your backend to generate a JWT token for the client to use when communicating with GazeHub.
 
 ```php
 /**
@@ -99,7 +100,7 @@ public function index(GazePublisher $gaze): Response
 # url where the hub is hosted at
 GAZEHUB_URL='http://localhost:8000'
 
-# the path location of the primairy key file
+# the path location of the primary key file
 PRIVATE_KEY_PATH='./private.key'
 ```
 
@@ -149,7 +150,7 @@ Route::get('/token', [\App\Http\Controllers\TokenController::class, 'token']);
  * Example: 1
  * This will emit an new event to the hub with the name 'ProductUpdated/1'
  * The payload that will be send is $product
- * The only listerners that will recieve the event are users with the role 'admin'
+ * The only listeners that will receive the event are users with the role 'admin'
  */
 $gaze->emit('ProductUpdated/1', $product, 'admin');
 
@@ -158,7 +159,45 @@ $gaze->emit('ProductUpdated/1', $product, 'admin');
  * Example: 2
  * This will emit an new event to the hub with the name 'ProductCreated'
  * The payload that will be send is $newProduct
- * The role is not specified, thus it will be recieved by everyone
+ * The role is not specified, thus it will be received by everyone
  */
 $gaze->emit('ProductCreated', $newProduct);
+```
+
+## Error handling
+
+It may occur that the emit will fail for numerous reasons such as wrong huburl, no emit permission because of a faulty token, hub is offline, etc. To combat this you can provide your own errorhandler in the constructor or wrap the `emit` in a `try catch` block. GazePublisher comes with 2 built in error handlers `IgnoringErrorHandler` and the default `RethrowingErrorHandler`. The `IgnoringErrorHandler` will ignore the exception and `RethrowingErrorHandler` will throw the exception.
+
+```php
+/**
+ * Example: 1
+ * Wrapping the code in a try catch block
+ */
+try {
+    $gaze->emit('ProductCreated', $newProduct);
+} catch(GazeException $e) {
+    // your code ...
+}
+
+/**
+ * Example: 2
+ * Providing your own errorhandler (this example will POST to Sentry).
+ * Note that you won't have to wrap the emit code in a try catch block anymore
+ */
+
+// ExternalLogErrorHandler.php
+use ISAAC\GazePublisher\ErrorHandlers\ErrorHandler;
+
+class ExternalLogErrorHandler implements ErrorHandler
+{
+    public function handleException(Exception $exception): void
+    {
+        \Sentry\captureException($exception);
+    }
+}
+
+// YOUR-FILE.php
+$gaze = new GazePublisher($hubUrl, $privateKeyContents, $maxRetries, new ExternalLogErrorHandler());
+$gaze->emit('ProductCreated', $newProduct);
+
 ```

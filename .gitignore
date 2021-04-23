@@ -1,6 +1,4 @@
-/vendor
-.idea
-.zshrc
+/vendor/
 /*.key
-.phpunit.result.cache
-/coverage
+/.phpunit.result.cache
+/coverage/

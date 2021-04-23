@@ -1,5 +1,5 @@
 {
-    "name": "isaac/gazepublisher",
+    "name": "isaac/gaze-publisher",
     "type": "library",
     "license": "proprietary",
     "description": "Publish library for GazeHub",
