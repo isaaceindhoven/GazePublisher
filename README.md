@@ -1,7 +1,7 @@
 # GazePublisher
 
 GazePublisher is part of Gaze.
-GazePublisher is the backend library that is responsible for sending data to [GazeHub](https://gitlab.isaac.nl/study/php-chapter/real-time-ui-updates/gazehub).
+GazePublisher is the backend library that is responsible for sending data to [GazeHub](https://github.com/isaaceindhoven/GazeHub).
 
 ## Documentation & Installation
 
