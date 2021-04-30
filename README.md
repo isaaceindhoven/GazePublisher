@@ -5,4 +5,4 @@ GazePublisher is the backend library that is responsible for sending data to [Ga
 
 ## Documentation & Installation
 
-[Click here](#) to go to the full documentation and installation instruction for Gaze and GazePublisher.
+[Click here](https://isaaceindhoven.github.io/GazeHub/docs/#/gazepublisher) to go to the full documentation and installation instruction for Gaze and GazePublisher.
