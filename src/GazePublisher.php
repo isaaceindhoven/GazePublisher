@@ -83,17 +83,25 @@ class GazePublisher
 
     /**
      * @param string $topic
-     * @param null|mixed $payload
+     * @param mixed $payload
      * @param string|null $role
      * @throws HubEmitRejectedException
+     * @throws InvalidPayloadException
      */
     public function emit(string $topic, $payload = null, string $role = null): void
     {
-        $httpCode = $this->sendToHub($topic, $payload, $role);
+        try {
+            $payload = json_encode(['payload' => $payload, 'topic' => $topic, 'role' => $role ], JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $this->errorHandler->handleException(new InvalidPayloadException());
+            return;
+        }
+
+        $httpCode = $this->sendToHub($payload);
         $tries = 1;
 
         while ($httpCode !== 200 && ++$tries <= $this->maxRetries) {
-            $httpCode = $this->sendToHub($topic, $payload, $role);
+            $httpCode = $this->sendToHub($payload);
         }
 
         if ($httpCode !== 200) {
@@ -112,26 +120,15 @@ class GazePublisher
     }
 
     /**
-     * @param string $topic
-     * @param mixed $payload
-     * @param string|null $role
+     * @param string $payload
      * @return int
-     * @throws InvalidPayloadException
      */
-    private function sendToHub(string $topic, $payload, string $role = null): int
+    private function sendToHub(string $payload): int
     {
         $jwt = $this->generateJwt(['role' => 'server'], 1);
-
-        try {
-            return $this->httpClient->post(
-                $this->hubUrl . '/event',
-                json_encode(['payload' => $payload, 'topic' => $topic, 'role' => $role ], JSON_THROW_ON_ERROR),
-                ['Content-Type: application/json', 'Authorization: Bearer ' . $jwt ]
-            );
-        } catch (JsonException $e) {
-            $this->errorHandler->handleException(new InvalidPayloadException());
-            return 500;
-        }
+        $headers = ['Content-Type: application/json', 'Authorization: Bearer ' . $jwt ];
+        $url = $this->hubUrl . '/event';
+        return $this->httpClient->post($url, $payload, $headers);
     }
 
     /**
