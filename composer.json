@@ -12,7 +12,7 @@
         "php": "~7.3.0 || ~7.4.0 || ~8.0.0",
         "ext-curl": "*",
         "ext-json": "*",
-        "firebase/php-jwt": "^5.2"
+        "firebase/php-jwt": "^5.2 || ^6.0"
     },
     "require-dev": {
         "isaac/php-code-sniffer-standard": "^21.0",
